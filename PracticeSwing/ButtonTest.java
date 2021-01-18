@@ -42,13 +42,16 @@ class ButtonPanel extends JPanel {
 		blueButton.addActionListener(blueAction);
 		redButton.addActionListener(redAction);
 	}
-	private class ColorAction implements ActionListener {
-		private Color backgroundColor;
-		public ColorAction(final Color c) {
-			backgroundColor = c;
-		}
-		public void actionPerformed(ActionEvent e) {
-			setBackground(backgroundColor);
-		}
+}
+
+class ColorAction implements ActionListener {
+	private Color backgroundColor;
+	public ColorAction(final Color c) {
+		backgroundColor = c;
+	}
+	public void actionPerformed(ActionEvent e) {
+		JButton button = (JButton)e.getSource();
+		
+		button.getParent().setBackground(backgroundColor);
 	}
 }
