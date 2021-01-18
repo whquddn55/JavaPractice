@@ -1,3 +1,4 @@
+
 public class Rectangle {
 	private int leftTopX, leftTopY;
 	private int rightBottomX, rightBottomY;
