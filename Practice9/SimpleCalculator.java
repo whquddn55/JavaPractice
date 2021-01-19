@@ -2,6 +2,9 @@ package Practice9;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Stack;
+import java.util.Vector;
+
 import javax.swing.*;
 
 public class SimpleCalculator {
@@ -37,6 +40,8 @@ class ButtonPanel extends JPanel {
 		add(new JButton(new OperateAction("-")));
 		add(new JButton(new OperateAction("*")));
 		add(new JButton(new OperateAction("/")));
+		add(new JButton(new OperateAction("(")));
+		add(new JButton(new OperateAction(")")));
 		
 		add(new JButton(new AbstractAction("Ok") {
 			public void actionPerformed(ActionEvent event) {
@@ -55,42 +60,95 @@ class ButtonPanel extends JPanel {
 	}
 	
 	public int calculate() {
-		boolean isLastIndexNumber = true;
-		int result = 0;
+		Vector<Integer> postfixExpression = new Vector<Integer>();
+		Stack<Integer> s = new Stack<Integer>();
 		
-		int num1 = 0;
-		int num2 = -1;
-		char operation = '0';
-		for (int i = 0; i < expression.length(); ++i ) {
-			char c = expression.charAt(i);
-			
+		boolean wasDigit = false;
+		for(int i = 0; i < expression.length(); ++i) {
+			int c = expression.charAt(i);
 			if (Character.isDigit(c)) {
-				if (num2 == -1)
-					num1 = num1 * 10 + c - '0';
-				else
-					num2 = num2 * 10 + c - '0';
+				c -= '0';
+				int lastIndex = postfixExpression.size() - 1;
+				if (wasDigit)
+						postfixExpression.set(lastIndex, (postfixExpression.elementAt(lastIndex) * 10 + c));
+				else 
+					postfixExpression.add(c);
+				wasDigit = true;
 			}
 			else {
-				num2 = 0;
-				operation = c;
+				wasDigit = false;
+				if (s.isEmpty() || (c == '('))
+					s.push(c);
+				else if (c == ')') {
+					while(true) {
+						int top = s.pop();
+						if (top == '(')
+							break;
+						if (top == '+')
+							top = -1;
+						else if (top == '-')
+							top = -2;
+						else if (top == '*')
+							top = -3;
+						else
+							top = -4;
+						postfixExpression.add(top);
+					}
+				}
+				else if (c == '+' || c == '-'){
+					s.push(c);
+				}
+				else {
+					int top = s.pop();
+					s.push(top);
+					if (top == '+')
+						top = -1;
+					else if (top == '-')
+						top = -2;
+					else if (top == '*')
+						top = -3;
+					else
+						top = -4;
+					while(!s.empty() && top == -1 && top == -2) 
+						postfixExpression.add(s.pop());
+					s.push(c);
+				}
 			}
 		}
-		switch(operation) {
-		case '+' :
-			result = num1 + num2;
-			break;
-		case '-' :
-			result = num1 - num2;
-			break;
-		case '*' :
-			result = num1 * num2;
-			break;
-		case '/' :
-			result = num1 / num2;
-			break;
+		
+		while(!s.isEmpty()) {
+			int top = s.pop();
+			if (top == '+')
+				top = -1;
+			else if (top == '-')
+				top = -2;
+			else if (top == '*')
+				top = -3;
+			else
+				top = -4;
+			postfixExpression.add(top);
 		}
 		
-		return result;
+		s.clear();
+		for (int t : postfixExpression) {
+			if (t >= 0)
+				s.push(t);
+			else {
+				int num1 = s.pop(), num2 = s.pop();
+				int temp = 0;
+				 if (t == -1)
+					temp = num1 + num2;
+				else if (t == -2)
+					temp = num2 - num1;
+				else if (t == -3)
+					temp = num1 * num2;
+				else
+					temp = num2 / num1;
+				 s.push(temp);
+			}
+		}
+		
+		return s.pop();
 	}
 	
 	class NumberAction extends AbstractAction {
